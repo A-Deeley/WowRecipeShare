@@ -1,17 +1,18 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 using NLua;
-using System;
+using recipe_share_api.Characters;
+using recipe_share_api.Login;
+using recipe_share_api.Sessions;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Xml.Linq;
 
 namespace recipe_share_api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class WowUserController(ISessionState sessionState, ProfileBattleNetClient bnetClient) : ControllerBase
+public class CharacterController(ISessionState sessionState) : Controller
 {
+    // TEMPORARY "DATABASE"
     internal static Dictionary<int, ApiCharRef> _ram = new()
     {
         { -1,
@@ -40,71 +41,32 @@ public class WowUserController(ISessionState sessionState, ProfileBattleNetClien
     };
 
     [HttpGet]
-    public async Task<ActionResult<ProfileUserWowResponse>> GetUserWow()
+    public ActionResult Get()
     {
-        Request.Headers.TryGetValue(ProfileController.SessionIdHeader, out StringValues value);
-        var sessionIdHeaderValue = value.FirstOrDefault();
-
-        if (sessionIdHeaderValue is not string sessionId)
-            return Unauthorized();
-
-        if (sessionState.Session is null || sessionState.Session?.SessionId != sessionId)
-            return Unauthorized();
-
-
-        var accessToken = sessionState.Session.AccessToken;
-        var profileInfo = await bnetClient.GetWowUser(accessToken);
-
-        if (profileInfo is null)
-            return NotFound();
-
-        return Ok(profileInfo);
+        return Ok(_ram.Where(kvPair => kvPair.Value.Professions is not null).Select(kvPair => new { realm = kvPair.Value.CharInfo.RealmSlug, character = kvPair.Value.CharInfo.Name, id = kvPair.Key }));
     }
 
-    [HttpGet("{id}")]
-    public async Task<ActionResult<ProfileCharacterResponse>> GetProtectedCharacter(int id)
+    [HttpGet("{characterId}")]
+    public ActionResult<IEnumerable<TradeSkill>> GetCharacter(int characterId)
     {
-        Request.Headers.TryGetValue(ProfileController.SessionIdHeader, out StringValues value);
-        var sessionIdHeaderValue = value.FirstOrDefault();
-
-        if (sessionIdHeaderValue is not string sessionId)
-            return Unauthorized();
-
-        if (sessionState.Session is null || sessionState.Session?.SessionId != sessionId)
-            return Unauthorized();
-
-
-
-        var accessToken = sessionState.Session.AccessToken;
-        var profileInfo = await bnetClient.GetCharacter(id, accessToken);
-
-        if (profileInfo is null)
-            return NotFound();
-
-        return Ok(profileInfo);
+        return Ok(_ram[characterId]);
     }
 
     [HttpGet("{characterId}/Profession")]
     public ActionResult GetProfessionData(int characterId)
     {
-        if (!_ram.ContainsKey(characterId)) return NotFound($"No profession data for character id {characterId}");
+        if (!_ram.TryGetValue(characterId, out ApiCharRef? value)) return NotFound($"No profession data for character id {characterId}");
 
-        return Ok(JsonSerializer.Serialize(_ram[characterId]));
+        return Ok(JsonSerializer.Serialize(value));
     }
 
     [HttpPost("{characterId}/Profession")]
     public ActionResult UploadProfessionData(int characterId, IFormFile file)
     {
-        Request.Headers.TryGetValue(ProfileController.SessionIdHeader, out StringValues value);
-        var sessionIdHeaderValue = value.FirstOrDefault();
-
-        if (sessionIdHeaderValue is not string sessionId)
+        if (!sessionState.TryGetSession(Request, out var session))
             return Unauthorized();
 
-        if (sessionState.Session is null || sessionState.Session?.SessionId != sessionId)
-            return Unauthorized();
-
-        bool isOwnedByRequester = sessionState.Session?.OwnedCharacterIds.Contains(characterId) ?? false;
+        bool isOwnedByRequester = session?.OwnedCharacterIds.Contains(characterId) ?? false;
         if (!isOwnedByRequester)
             return Unauthorized();
 
@@ -127,11 +89,18 @@ public class WowUserController(ISessionState sessionState, ProfileBattleNetClien
             foreach (LuaTable tradeskill in rawTradeskills.Values)
             {
                 var levelInfo = (LuaTable)tradeskill["level"];
+                string? subspec = null;
+                try
+                {
+                    subspec = (string)tradeskill["subspec"];
+                }
+                catch { }
                 TradeSkill t = new()
                 {
                     Name = (string)tradeskill["name"],
                     CurrentExp = (Int64)levelInfo["current"],
-                    MaxExp = (Int64)levelInfo["max"]
+                    MaxExp = (Int64)levelInfo["max"],
+                    SubSpecialisation = subspec
                 };
 
                 // Foreach header (category) of item
@@ -169,7 +138,7 @@ public class WowUserController(ISessionState sessionState, ProfileBattleNetClien
                 tradeSkills.Add(t);
             }
         }
-        catch(Exception e)
+        catch (Exception e)
         {
             return BadRequest($"Malformed file. {e.Message}");
         }
@@ -228,75 +197,4 @@ public class WowUserController(ISessionState sessionState, ProfileBattleNetClien
 
         return Ok();
     }
-}
-
-public class CharacterInfo(int id, string name, string realm, string? guild = null)
-{
-    public string? GuildName { get; set; } = guild;
-    public string Name { get; set; } = name;
-    public string RealmSlug { get; set; } = realm;
-    public int CharacterId { get; set; } = id;
-}
-
-public class ApiCharRef(CharacterInfo charInfo, ProfessionSkills? professions = null)
-{
-    public ProfessionSkills? Professions { get; set; } = professions;
-    public CharacterInfo CharInfo { get; set; } = charInfo;
-}
-
-public class ProfessionSkills
-{
-    public IEnumerable<TradeSkill> TradeSkills { get; set; } = [];
-    public IEnumerable<CraftSkill> CraftSkills { get; set; } = [];
-}
-#region CraftSkill
-public class CraftSkill
-{
-    public string Name { get; set; } = null!;
-    public Int64 CurrentExp { get; set; }
-    public Int64 MaxExp { get; set; }
-    public List<SkillItem> Items { get; set; } = [];
-}
-#endregion
-
-
-#region TradeSkill
-public class TradeSkill
-{
-    public string Name { get; set; } = string.Empty;
-    public Int64 CurrentExp { get; set; }
-    public Int64 MaxExp { get; set; }
-    public List<TradeSkillItem> Items { get; set; } = [];
-}
-#endregion
-
-public class SkillItem
-{
-    public string Name { get; set; } = string.Empty;
-    public int ItemId { get; set; }
-
-    [JsonConverter(typeof(JsonStringEnumConverter<Difficulty>))]
-    public Difficulty Difficulty { get; set; }
-    public List<SkillReagent> Reagents { get; set; } = [];
-}
-
-public class TradeSkillItem : SkillItem
-{
-    public string HeaderName { get; set; } = string.Empty;
-}
-
-public class SkillReagent
-{
-    public string Name { get; set; } = string.Empty;
-    public int ItemId { get; set; }
-    public Int64 Count { get; set; }
-}
-
-public enum Difficulty
-{
-    Trivial,
-    Easy,
-    Medium,
-    Optimal,
-    Difficult
 }

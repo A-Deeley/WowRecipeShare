@@ -69,7 +69,7 @@ export function ShowTradeSkill({ tradeskill }: ShowTradeSkillProps) {
               fontWeight: "bold",
             }}
           >
-            {tradeskill.CurrentExp} / {tradeskill.MaxExp}
+            {tradeskill.CurrentExp} / {tradeskill.MaxExp} {tradeskill.SubSpecialisation && `(${tradeskill.SubSpecialisation})`}
           </span>
           <div
             style={{

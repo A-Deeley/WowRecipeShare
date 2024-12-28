@@ -17,7 +17,7 @@ async function login(code: string):Promise<LoginToken> {
 type LoginToken = {
     session_id: string,
     id_token: string,
-    expires_in: number
+    ExpiresOn: Date
 }
 
 export type { LoginToken }

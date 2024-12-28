@@ -4,7 +4,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.HttpOverrides;
-using recipe_share_api;
+using recipe_share_api.BattleNetApiResponses;
+using recipe_share_api.Sessions;
 using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,6 +18,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<ISessionState, SessionState>();
 builder.Services.AddHttpClient<ProfileBattleNetClient>();
+builder.Services.Configure<recipe_share_api.Options.OpenIdConnectOptions>(builder.Configuration.GetSection(recipe_share_api.Options.OpenIdConnectOptions.Key));
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("Cors", builder =>

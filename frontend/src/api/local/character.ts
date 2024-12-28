@@ -92,6 +92,7 @@ export interface Tradeskill {
     CurrentExp: number;
     MaxExp:     number;
     Items:      Item[];
+    SubSpecialisation?: string;
 }
 
 export interface Craftskill {
