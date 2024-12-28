@@ -1,0 +1,103 @@
+.Druid {
+    color: #FF7C0A
+}
+
+.Hunter {
+    color: #AAD372
+}
+
+.Mage {
+    color: #3FC7EB
+}
+
+.Paladin {
+    color: #F48CBA
+}
+
+.Priest {
+    color: #FFF;
+}
+
+.Rogue {
+    color: #FFF468
+}
+
+.Shaman {
+    color: #0070DD
+}
+
+.Warlock {
+    color: #8788EE
+}
+
+.Warrior {
+    color: #C69B6D
+}
+
+.class-bg {
+    background-color: #3c3c3c;
+}
+
+.class {
+    border-radius: 5px;
+    text-align: center;
+}
+
+.Trivial {
+    color: #808080;
+}
+
+.Trivial.Selected {
+    color: #FFF;
+    background: #808080;
+    border-radius: 2px;
+}
+
+.Easy {
+    color: #40BF40;
+}
+
+.Easy.Selected {
+    color: #FFF;
+    background: #40BF40;
+    border-radius: 2px;
+}
+
+.Medium {
+    color: #FFFF00;
+}
+
+.Medium.Selected {
+    color: #000;
+    background: #FFFF00;
+    border-radius: 2px;
+}
+
+.Optimal {
+    color: #FF8040;
+}
+
+.Optimal.Selected {
+    color: #FFF;
+    background: #FF8040;
+    border-radius: 2px;
+}
+
+.Difficult {
+    color: #F48CBA;
+}
+
+.Difficult.Selected {
+    color: #FFF;
+    background: #F48CBA;
+    border-radius: 2px;
+}
+
+.Trivial:hover,
+.Easy:hover,
+.Medium:hover,
+.Optimal:hover,
+.Difficult:hover {
+    color: #FFF;
+    cursor: pointer;
+}
