@@ -1,3 +1,4 @@
+import { apiRoot } from "../apiconfig";
 import { ProfessionSkills } from "../local/character";
 import { LoginToken } from "../local/profile";
 
@@ -10,8 +11,6 @@ const queryParams = {
   client_id: clientId
 }
 
-const baseUrl: string = import.meta.env.DEV ? 'https://localhost:7034' : 'https://api.recipeshare.kuronai.dev';
-
 const authorizeUrl = `https://oauth.battle.net/authorize?${new URLSearchParams(queryParams).toString()}`;
 
 async function GetProfileAccountSummary(): Promise<AccountProfileSummary> {
@@ -20,7 +19,7 @@ async function GetProfileAccountSummary(): Promise<AccountProfileSummary> {
 
   if (token === null) throw new Error('No session token found. Please log in again.');
   
-  const response = await fetch(`${baseUrl}/profile/user/wow`, { headers: { 'X-RecipeShare-SessionId': token.session_id}});
+  const response = await fetch(`${apiRoot}/BnetApiProxy/profile/user/wow`, { headers: { 'X-RecipeShare-SessionId': token.session_id}});
 
   if (!response.ok) throw new Error(response.statusText);
 
@@ -32,7 +31,7 @@ async function GetProtectedCharacter(name: string, realm: string): Promise<Profi
 
   if (token === null) throw new Error('No session token found. Please log in again.');
 
-  const response = await fetch(`${baseUrl}/profile/user/wow/protected-character/${realm}-${name}`, { headers: { 'X-RecipeShare-SessionId': token.session_id}});
+  const response = await fetch(`${apiRoot}/BnetApiProxy/profile/user/wow/protected-character/${realm}-${name}`, { headers: { 'X-RecipeShare-SessionId': token.session_id}});
 
   if (!response.ok) throw new Error(response.statusText);
 

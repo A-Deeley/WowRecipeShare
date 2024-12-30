@@ -10,4 +10,5 @@ public class Character
     public Gender gender { get; set; }
     public Faction faction { get; set; }
     public int level { get; set; }
+    public Guild? guild { get; set; }
 }

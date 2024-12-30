@@ -124,7 +124,7 @@ function ProtectedCharacterList({ characters, realm }: CharacterListProps) {
               <td>{c.name}</td>
               <td>{c.level}</td>
               <td className={`class-bg ${c.playable_class.name} class`}>{c.playable_class.name}</td>
-              <td><Link to="/protected_character/$id" params={{ id: `${c.id}` }}>Details</Link></td>
+              <td><Link to="/protected_character/$realm/$name" params={{ realm: c.realm.slug, name: c.name }}>Details</Link></td>
             </tr>
           ))}
         </tbody>

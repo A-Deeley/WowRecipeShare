@@ -10,9 +10,7 @@ namespace recipe_share_api.BattleNetProxy;
 [Route("[controller]")]
 public class BnetApiProxyController(ISessionState sessionState, ProfileBattleNetClient bnetClient) : ControllerBase
 {
-
-
-    [HttpGet("/profile/user/wow")]
+    [HttpGet("profile/user/wow")]
     public async Task<ActionResult<ProfileUserWowResponse>> GetUserWow()
     {
         if (!sessionState.TryGetSession(Request, out var session) || session is null)
@@ -27,7 +25,7 @@ public class BnetApiProxyController(ISessionState sessionState, ProfileBattleNet
         return Ok(profileInfo);
     }
 
-    [HttpGet("/profile/user/wow/protected-character/{realm}-{name}")]
+    [HttpGet("profile/user/wow/protected-character/{realm}-{name}")]
     public async Task<ActionResult<ProfileCharacterResponse>> GetProtectedCharacter(string name, string realm)
     {
         if (!sessionState.TryGetSession(Request, out var session) || session is null)

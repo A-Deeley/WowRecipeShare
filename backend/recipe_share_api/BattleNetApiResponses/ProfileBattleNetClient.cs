@@ -7,8 +7,17 @@ namespace recipe_share_api.BattleNetApiResponses;
 
 public class ProfileBattleNetClient(HttpClient client)
 {
-    string baseUrl = "https://us.api.blizzard.com";
-    string _params = "namespace=profile-classic1x-us&locale=en_US";
+    readonly string baseUrl = "https://us.api.blizzard.com";
+    readonly string _params = "namespace=profile-classic1x-us&locale=en_US";
+
+    public async Task<UserInfoResponse?> GetUserInfo(string token)
+    {
+        client.DefaultRequestHeaders.Authorization = new("Bearer", token);
+        var bnetResponse = await client.GetAsync("https://oauth.battle.net/userinfo");
+
+        string body = await bnetResponse.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<UserInfoResponse>(body);
+    }
 
     public async Task<ProfileUserWowResponse?> GetWowUser(string token)
     {
@@ -25,7 +34,7 @@ public class ProfileBattleNetClient(HttpClient client)
         client.DefaultRequestHeaders.Authorization = new("Bearer", token);
 
 
-        var bnetResponse = await client.GetAsync($"{baseUrl}/profile/wow/character/{realm.ToLower()}/{realm.ToLower()}?{_params}");
+        var bnetResponse = await client.GetAsync($"{baseUrl}/profile/wow/character/{realm.ToLower()}/{name.ToLower()}?{_params}");
 
         string body = await bnetResponse.Content.ReadAsStringAsync();
 

@@ -1,9 +1,27 @@
-﻿namespace recipe_share_api.Characters;
+﻿using recipe_share_api.BattleNetApiResponses;
 
-public class CharacterInfo(int id, string name, string realm, string? guild = null)
+namespace recipe_share_api.Characters;
+
+public class CharacterInfo
 {
-    public string? GuildName { get; set; } = guild;
-    public string Name { get; set; } = name;
-    public string RealmSlug { get; set; } = realm;
-    public int CharacterId { get; set; } = id;
+    public CharacterInfo(int id, string name, string realm, string? guild = null)
+    {
+        CharacterId = id;
+        RealmSlug = realm.ToLower();
+        Name = name;
+        GuildName = guild;
+    }
+
+    public CharacterInfo(Character character)
+    {
+        CharacterId = character.id;
+        RealmSlug = character.realm.slug;
+        Name = character.name;
+        GuildName = character.guild?.name;
+    }
+
+    public string? GuildName { get; set; }
+    public string Name { get; set; }
+    public string RealmSlug { get; set; }
+    public int CharacterId { get; set; }
 }

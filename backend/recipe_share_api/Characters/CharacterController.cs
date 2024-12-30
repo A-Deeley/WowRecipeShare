@@ -192,8 +192,15 @@ public class CharacterController(ISessionState sessionState) : Controller
 
         if (_ram.ContainsKey(characterId))
             _ram[characterId].Professions = new() { TradeSkills = tradeSkills, CraftSkills = craftSkills };
-
-        //_ram.Add(characterId, new() { TradeSkills = tradeSkills, CraftSkills = craftSkills });
+        else
+        {
+            var profileInfo = ProfileController._bnetRam[session!.AccountId];
+            var charInfo = profileInfo.wow_accounts.SelectMany(wa => wa.characters).FirstOrDefault(c => c.id == characterId);
+            if (charInfo is null) throw new InvalidOperationException("Could not find character");
+            CharacterInfo appCharInfo = new(charInfo);
+            ProfessionSkills skills = new() { TradeSkills = tradeSkills, CraftSkills = craftSkills };
+            _ram.Add(characterId, new(appCharInfo, skills));
+        }
 
         return Ok();
     }

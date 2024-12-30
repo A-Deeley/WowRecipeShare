@@ -15,8 +15,8 @@ import { Route as LoginBnetImport } from './routes/login-bnet'
 import { Route as DisclaimerImport } from './routes/disclaimer'
 import { Route as AddonImport } from './routes/addon'
 import { Route as IndexImport } from './routes/index'
-import { Route as ProtectedcharacterIdImport } from './routes/protected_character.$id'
 import { Route as CharacterIdImport } from './routes/character.$id'
+import { Route as ProtectedcharacterRealmNameImport } from './routes/protected_character.$realm.$name'
 
 // Create/Update Routes
 
@@ -44,17 +44,18 @@ const IndexRoute = IndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const ProtectedcharacterIdRoute = ProtectedcharacterIdImport.update({
-  id: '/protected_character/$id',
-  path: '/protected_character/$id',
-  getParentRoute: () => rootRoute,
-} as any)
-
 const CharacterIdRoute = CharacterIdImport.update({
   id: '/character/$id',
   path: '/character/$id',
   getParentRoute: () => rootRoute,
 } as any)
+
+const ProtectedcharacterRealmNameRoute =
+  ProtectedcharacterRealmNameImport.update({
+    id: '/protected_character/$realm/$name',
+    path: '/protected_character/$realm/$name',
+    getParentRoute: () => rootRoute,
+  } as any)
 
 // Populate the FileRoutesByPath interface
 
@@ -95,11 +96,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CharacterIdImport
       parentRoute: typeof rootRoute
     }
-    '/protected_character/$id': {
-      id: '/protected_character/$id'
-      path: '/protected_character/$id'
-      fullPath: '/protected_character/$id'
-      preLoaderRoute: typeof ProtectedcharacterIdImport
+    '/protected_character/$realm/$name': {
+      id: '/protected_character/$realm/$name'
+      path: '/protected_character/$realm/$name'
+      fullPath: '/protected_character/$realm/$name'
+      preLoaderRoute: typeof ProtectedcharacterRealmNameImport
       parentRoute: typeof rootRoute
     }
   }
@@ -113,7 +114,7 @@ export interface FileRoutesByFullPath {
   '/disclaimer': typeof DisclaimerRoute
   '/login-bnet': typeof LoginBnetRoute
   '/character/$id': typeof CharacterIdRoute
-  '/protected_character/$id': typeof ProtectedcharacterIdRoute
+  '/protected_character/$realm/$name': typeof ProtectedcharacterRealmNameRoute
 }
 
 export interface FileRoutesByTo {
@@ -122,7 +123,7 @@ export interface FileRoutesByTo {
   '/disclaimer': typeof DisclaimerRoute
   '/login-bnet': typeof LoginBnetRoute
   '/character/$id': typeof CharacterIdRoute
-  '/protected_character/$id': typeof ProtectedcharacterIdRoute
+  '/protected_character/$realm/$name': typeof ProtectedcharacterRealmNameRoute
 }
 
 export interface FileRoutesById {
@@ -132,7 +133,7 @@ export interface FileRoutesById {
   '/disclaimer': typeof DisclaimerRoute
   '/login-bnet': typeof LoginBnetRoute
   '/character/$id': typeof CharacterIdRoute
-  '/protected_character/$id': typeof ProtectedcharacterIdRoute
+  '/protected_character/$realm/$name': typeof ProtectedcharacterRealmNameRoute
 }
 
 export interface FileRouteTypes {
@@ -143,7 +144,7 @@ export interface FileRouteTypes {
     | '/disclaimer'
     | '/login-bnet'
     | '/character/$id'
-    | '/protected_character/$id'
+    | '/protected_character/$realm/$name'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -151,7 +152,7 @@ export interface FileRouteTypes {
     | '/disclaimer'
     | '/login-bnet'
     | '/character/$id'
-    | '/protected_character/$id'
+    | '/protected_character/$realm/$name'
   id:
     | '__root__'
     | '/'
@@ -159,7 +160,7 @@ export interface FileRouteTypes {
     | '/disclaimer'
     | '/login-bnet'
     | '/character/$id'
-    | '/protected_character/$id'
+    | '/protected_character/$realm/$name'
   fileRoutesById: FileRoutesById
 }
 
@@ -169,7 +170,7 @@ export interface RootRouteChildren {
   DisclaimerRoute: typeof DisclaimerRoute
   LoginBnetRoute: typeof LoginBnetRoute
   CharacterIdRoute: typeof CharacterIdRoute
-  ProtectedcharacterIdRoute: typeof ProtectedcharacterIdRoute
+  ProtectedcharacterRealmNameRoute: typeof ProtectedcharacterRealmNameRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -178,7 +179,7 @@ const rootRouteChildren: RootRouteChildren = {
   DisclaimerRoute: DisclaimerRoute,
   LoginBnetRoute: LoginBnetRoute,
   CharacterIdRoute: CharacterIdRoute,
-  ProtectedcharacterIdRoute: ProtectedcharacterIdRoute,
+  ProtectedcharacterRealmNameRoute: ProtectedcharacterRealmNameRoute,
 }
 
 export const routeTree = rootRoute
@@ -196,7 +197,7 @@ export const routeTree = rootRoute
         "/disclaimer",
         "/login-bnet",
         "/character/$id",
-        "/protected_character/$id"
+        "/protected_character/$realm/$name"
       ]
     },
     "/": {
@@ -214,8 +215,8 @@ export const routeTree = rootRoute
     "/character/$id": {
       "filePath": "character.$id.tsx"
     },
-    "/protected_character/$id": {
-      "filePath": "protected_character.$id.tsx"
+    "/protected_character/$realm/$name": {
+      "filePath": "protected_character.$realm.$name.tsx"
     }
   }
 }

@@ -1,6 +1,7 @@
+import { apiRoot } from "../apiconfig";
 import { GetSessionStorageToken } from "../blizzard/profile";
 
-const apiRoot = import.meta.env.DEV ? "https://localhost:7034" : "https://api.recipeshare.kuronai.dev";
+
 
 async function getProfessions(
     id: string | number
@@ -10,7 +11,7 @@ async function getProfessions(
     if (token === null)
       throw new Error("No session token found. Please log in again.");
     
-    const response = await fetch(`${apiRoot}/WowUser/${id}/Profession`);
+    const response = await fetch(`${apiRoot}/Character/${id}/Profession`);
 
     if (response.status === 404) return null;
 
@@ -20,7 +21,7 @@ async function getProfessions(
 async function updateProfessions(
   id: string | number,
   file: File
-): Promise<string> {
+): Promise<void> {
   const token = GetSessionStorageToken();
 
   if (token === null)
@@ -28,8 +29,8 @@ async function updateProfessions(
   const formData = new FormData();
   formData.append("file", file);
 
-  const response = await fetch(
-    `${apiRoot}/WowUser/${id}/Profession`,
+  await fetch(
+    `${apiRoot}/Character/${id}/Profession`,
     {
       method: "post",
       headers: {
@@ -38,8 +39,6 @@ async function updateProfessions(
       body: formData
     }
   );
-
-  return response.json();
 }
 
 async function GetAllCharacters(): Promise<CharacterList[]> {

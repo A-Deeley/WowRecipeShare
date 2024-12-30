@@ -21,6 +21,7 @@ public class ProfileController(ISessionState sessionState, IWebHostEnvironment w
 {
     readonly OpenIdConnectOptions oidcConfig = oidcOptions.Value;
     readonly string redirectUri = webEnv.IsProduction() ? "https://recipeshare.kuronai.dev/login-bnet" : "http://localhost:5173/login-bnet";
+    internal static Dictionary<int, ProfileUserWowResponse> _bnetRam = new();
 
     [HttpPost]
     public async Task<ActionResult> Login(PostLoginRequest request)
@@ -41,8 +42,19 @@ public class ProfileController(ISessionState sessionState, IWebHostEnvironment w
         var tokenResponse = JsonSerializer.Deserialize<TokenResponseContent>(body);
         if (tokenResponse is TokenResponseContent contentResponse)
         {
-            var profileInfo = await bnetProfile.GetWowUser(tokenResponse.access_token);
-            if (profileInfo is null) throw new InvalidOperationException("Could not obtain account information during login.");
+            ProfileUserWowResponse? profileInfo = null;
+            var userInfo = await bnetProfile.GetUserInfo(tokenResponse.access_token);
+            if (userInfo is null) throw new InvalidOperationException("Could not obtain user account id.");
+            if (_bnetRam.TryGetValue(userInfo.id, out ProfileUserWowResponse? value) && value is not null)
+            {
+                profileInfo = value;
+            }
+            else
+            {
+                profileInfo = await bnetProfile.GetWowUser(tokenResponse.access_token);
+                if (profileInfo is null) throw new InvalidOperationException("Could not obtain account information during login.");
+                _bnetRam.Add(userInfo.id, profileInfo);
+            }
 
             var session = new SiteSession(contentResponse, profileInfo);
             var sessionId = sessionState.Start(session);

@@ -1,4 +1,4 @@
-const apiRoot = import.meta.env.DEV ? 'https://localhost:7034' : 'https://api.recipeshare.kuronai.dev';
+import { apiRoot } from "../apiconfig";
 
 async function getProfile(): Promise<string> {
   const response = await fetch(`${apiRoot}/Profile`);

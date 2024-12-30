@@ -3,6 +3,11 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
+# Artifacts from addon
+Addon/*.zip
+
+backend/recipe_share_api/Files/*.zip
+
 # User-specific files
 *.rsuser
 *.suo

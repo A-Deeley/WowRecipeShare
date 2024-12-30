@@ -6,9 +6,7 @@ declare global {
 }
 
 import { createFileRoute, Link, useLoaderData } from '@tanstack/react-router'
-import {
-  GetProtectedCharacter,
-} from '../api/blizzard/profile'
+import { GetProtectedCharacter } from '../api/blizzard/profile'
 import { FormEvent, useState } from 'react'
 import {
   getProfessions,
@@ -17,10 +15,11 @@ import {
 } from '../api/local/character'
 import { ShowTradeSkill } from '../TradeSkillComponents'
 import { ShowCraftSkill } from '../CraftSkillComponents'
-export const Route = createFileRoute('/protected_character/$id')({
-  loader: async ({ params: { id } }) => {
-    const response = await GetProtectedCharacter(id)
-    const professions = await getProfessions(id)
+export const Route = createFileRoute('/protected_character/$realm/$name')({
+  loader: async ({ params: { realm, name } }) => {
+    const response = await GetProtectedCharacter(name, realm)
+    console.log(response)
+    const professions = await getProfessions(response.id)
 
     return { ...response, professions }
   },
@@ -28,10 +27,13 @@ export const Route = createFileRoute('/protected_character/$id')({
 })
 
 function RouteComponent() {
-  const { name, level, character_class, professions, id } =
-    useLoaderData({ from: '/protected_character/$id' });
+  const { name, level, character_class, professions, id } = useLoaderData({
+    from: '/protected_character/$realm/$name',
+  })
 
-  const [proffs, setProffs] = useState<ProfessionSkills | undefined>(professions?.Professions)
+  const [proffs, setProffs] = useState<ProfessionSkills | undefined>(
+    professions?.Professions,
+  )
   // const { data, isError, isPending, refetch, error } = useQuery({
   //   queryKey: [realm.slug, name],
   //   queryFn: () => getProfessions(name, realm.slug),
@@ -39,11 +41,14 @@ function RouteComponent() {
 
   const [selectedTabIndex, setSelectedTabIndex] = useState<number>(0)
 
-  const handleUpdateProfessionsSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleUpdateProfessionsSubmit = async (
+    e: FormEvent<HTMLFormElement>,
+  ) => {
     e.preventDefault()
 
     await updateProfessions(id, e.currentTarget.file.files[0])
     setProffs((await getProfessions(id))?.Professions)
+    setSelectedTabIndex(0);
   }
 
   return (
@@ -141,7 +146,7 @@ function RouteComponent() {
               onSubmit={handleUpdateProfessionsSubmit}
               style={{ marginBottom: 10 }}
             >
-              <input type="file" name="file" />
+              <input type="file" name="file" accept='lua'/>
               <button>Submit</button>
             </form>
           </>
