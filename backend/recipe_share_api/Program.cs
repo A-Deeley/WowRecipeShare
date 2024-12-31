@@ -1,18 +1,19 @@
-using Microsoft.AspNetCore.Authentication.BearerToken;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using Microsoft.AspNetCore.Cors.Infrastructure;
+
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.EntityFrameworkCore;
 using recipe_share_api.BattleNetApiResponses;
+using recipe_share_api.EntityFramework;
 using recipe_share_api.Sessions;
-using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
+var configuration = builder.Configuration;
+var cString = configuration.GetConnectionString("MySql");
+var serverVersion = ServerVersion.AutoDetect(cString);
+builder.Services.AddDbContext<RecipeShareDbContext>(options => options.UseMySql(cString, serverVersion));
 
 // Add services to the container.
 
-builder.Services.AddControllers().AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = null);
+builder.Services.AddControllersWithViews().AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = null);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -29,6 +30,7 @@ builder.Services.AddCors(options =>
             .AllowAnyHeader();
     });
 });
+
 
 var app = builder.Build();
 

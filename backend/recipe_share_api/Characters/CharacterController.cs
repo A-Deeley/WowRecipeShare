@@ -94,7 +94,7 @@ public class CharacterController(ISessionState sessionState) : Controller
         {
             // Check if the user is uploading a valid file from the correct addon version.
             // Somehow get version from DB
-            string supportedVersion = "0.1.7";
+            string supportedVersion = "0.1.8";
             if (addonVersionInFile != supportedVersion)
                 throw new InvalidVersionException(addonVersionInFile, supportedVersion);
 
@@ -124,6 +124,7 @@ public class CharacterController(ISessionState sessionState) : Controller
                     subspec = (string)tradeskill["subspec"];
                 }
                 catch { }
+
                 TradeSkill t = new()
                 {
                     Name = (string)tradeskill["name"],
@@ -140,12 +141,25 @@ public class CharacterController(ISessionState sessionState) : Controller
                     foreach (LuaTable headerSkillItem in ((LuaTable)tradeskillInfo["items"]).Values)
                     {
                         Enum.TryParse((string)headerSkillItem["difficulty"], true, out Difficulty difficulty);
+                        ItemCooldown? cd = null;
+                        LuaTable cooldownInfo = (LuaTable)headerSkillItem["cooldown"];
+                        if (cooldownInfo is not null)
+                        {
+                            cd = new()
+                            {
+                                Current = (Int64)cooldownInfo["current"],
+                                Delta = (double)cooldownInfo["delta"]
+                            };
+
+                        }
+
                         TradeSkillItem item = new()
                         {
                             Name = (string)headerSkillItem["name"],
                             HeaderName = headerName,
                             Difficulty = difficulty,
-                            ItemId = int.Parse(((string)headerSkillItem["link"]).Split(':')[1])
+                            ItemId = int.Parse(((string)headerSkillItem["link"]).Split(':')[1]),
+                            Cooldown = cd
                         };
 
                         foreach (LuaTable reagentinfo in ((LuaTable)headerSkillItem["reagents"]).Values)

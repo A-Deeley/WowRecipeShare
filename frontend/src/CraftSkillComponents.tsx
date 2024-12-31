@@ -23,8 +23,8 @@ export function ShowCraftSkill({ tradeskill }: ShowCraftSkillProps) {
         gap: 0,
         gridTemplateRows: "5% 1fr",
         gridTemplateColumns: "1fr 1fr",
-        width: "50%",
-        maxHeight: "720px",
+        width: "48%",
+        maxHeight: "600px",
       }}
     >
       <div style={{ gridColumn: "span 2" }}>

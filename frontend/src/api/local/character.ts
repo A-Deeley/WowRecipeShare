@@ -39,9 +39,14 @@ async function updateProfessions(
     }
   );
 
-  const body: RequestException = await response.json()
-  console.log(body)
-  if (body) return body;
+  try {
+    const body: RequestException = await response.json()
+    console.log(body)
+    if (body) return body;
+  }
+  catch{
+    return undefined;
+  }
 }
 
 async function GetAllCharacters(): Promise<CharacterList[]> {
@@ -111,12 +116,18 @@ export interface CraftItem {
   Reagents:     Reagent[];
 }
 
+export interface ItemCooldown {
+  CooldownEnd: string,
+  CooldownDuration: string
+}
+
 export interface Item {
     Name:       string;
     ItemId:     number;
     HeaderName: string;
     Difficulty: number;
     Reagents:   Reagent[];
+    Cooldown?:  ItemCooldown
 }
 
 export interface Reagent {

@@ -13,7 +13,7 @@ function RouteComponent() {
         <h1>Instructions</h1>
         <h2>In-game</h2>
         <ol>
-          <li>Install the addon to extract your profession data: <a download href={`${apiRoot}/Files/addon`}>RecipeShare-0.1.7</a>.</li>
+          <li>Install the addon to extract your profession data: <a download href={`${apiRoot}/Files/addon`}>RecipeShare-0.1.8</a>.</li>
           <ul>
             <li>If you need help installing addons manually, see <a href='https://www.wowinterface.com/forums/faq.php?faq=install' target='_blank' rel='noopener noreferrer'>this guide</a>.</li>
             <li>In our case, we will use the <i style={{ fontFamily: 'monospace' }}>_classic_era_</i> folder.</li>

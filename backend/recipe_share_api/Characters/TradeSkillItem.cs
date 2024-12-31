@@ -3,4 +3,5 @@
 public class TradeSkillItem : SkillItem
 {
     public string HeaderName { get; set; } = string.Empty;
+    public ItemCooldown? Cooldown { get; set; }
 }

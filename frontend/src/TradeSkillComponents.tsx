@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Item, Reagent, Tradeskill } from "./api/local/character";
 import _ from "lodash";
+import { DateTime, Duration } from "luxon";
+import { Valid } from "luxon/src/_util";
 
 export interface ShowTradeSkillProps {
   tradeskill: Tradeskill;
@@ -24,8 +26,8 @@ export function ShowTradeSkill({ tradeskill }: ShowTradeSkillProps) {
         gap: 0,
         gridTemplateRows: "5% 1fr",
         gridTemplateColumns: "1fr 1fr",
-        width: "50%",
-        maxHeight: "720px",
+        width: "48%",
+        maxHeight: "600px",
       }}
     >
       <div style={{ gridColumn: "span 2" }}>
@@ -118,6 +120,12 @@ export interface ShowTradeSkillCraftingInfoProps {
 export function ShowTradeSkillCraftingInfo({
   selectedItem,
 }: ShowTradeSkillCraftingInfoProps) {
+  console.log(selectedItem)
+  let duration: Duration<Valid> | undefined;
+  if (selectedItem.Cooldown){
+    duration = DateTime.fromISO(selectedItem.Cooldown?.CooldownEnd).diffNow(['days', 'hours']);
+  } 
+
   return (
     <div
       key={selectedItem.ItemId}
@@ -158,6 +166,7 @@ export function ShowTradeSkillCraftingInfo({
           {selectedItem?.Name}
         </span>
       </a>
+      {duration && <span style={{ width: 'max-content', color: 'red', fontWeight: 'bold' }}>Cooldown remaining: {duration.days} Day{duration.days > 1 ? 's' : ''} {Math.floor(duration.hours)} Hr{Math.floor(duration.hours) > 1 ? 's' : ''}</span>}
       <hr style={{ gridColumn: "span 2", width: "100%" }} />
       {selectedItem?.Reagents.map((r) => (
         <TradeSkillItemReagent key={r.ItemId} reagent={r} />

@@ -131,6 +131,13 @@ local function handleTradeSkillShow(event)
                 difficulty = type,
                 link = link
             }
+            local cooldown = GetTradeSkillCooldown(craft)
+            if (cooldown) then
+                skillInfo.cooldown = {
+                    current = time(),
+                    delta = cooldown
+                }
+            end
             local reagentInfo = {}
             for reagent = 1, GetTradeSkillNumReagents(craft) do
                 local reagentName, _, reagentCount = GetTradeSkillReagentInfo(craft, reagent)
