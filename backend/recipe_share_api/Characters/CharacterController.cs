@@ -2,6 +2,8 @@
 using Microsoft.Extensions.Primitives;
 using NLua;
 using recipe_share_api.Characters;
+using recipe_share_api.Exceptions;
+using recipe_share_api.Exceptions.AddonExceptions;
 using recipe_share_api.Login;
 using recipe_share_api.Sessions;
 using System.Text.Json;
@@ -70,6 +72,10 @@ public class CharacterController(ISessionState sessionState) : Controller
         if (!isOwnedByRequester)
             return Unauthorized();
 
+        var profileInfo = ProfileController._bnetRam[session!.AccountId];
+        var charInfo = profileInfo.wow_accounts.SelectMany(wa => wa.characters).FirstOrDefault(c => c.id == characterId);
+        if (charInfo is null) throw new InvalidOperationException("Could not find character");
+
         string fileContents = "";
         using (var reader = new StreamReader(file.OpenReadStream()))
         {
@@ -78,6 +84,29 @@ public class CharacterController(ISessionState sessionState) : Controller
         if (fileContents == "") return BadRequest("Empty file");
         Lua lua = new();
         lua.DoString(fileContents);
+
+        LuaTable addonInfo = (LuaTable)lua["AddonInfo"];
+        string charNameInFile = (string)addonInfo["name"];
+        string realmNameInFile = (string)addonInfo["realm"];
+        string addonVersionInFile = (string)addonInfo["version"];
+        
+        try
+        {
+            // Check if the user is uploading a valid file from the correct addon version.
+            // Somehow get version from DB
+            string supportedVersion = "0.1.7";
+            if (addonVersionInFile != supportedVersion)
+                throw new InvalidVersionException(addonVersionInFile, supportedVersion);
+
+            // Check if the character in the file is the correct character
+            if (!charNameInFile.Equals(charInfo.name, StringComparison.OrdinalIgnoreCase) || !realmNameInFile.Equals(charInfo.realm.name, StringComparison.OrdinalIgnoreCase))
+                throw new InvalidCharacterException();
+        }
+        catch(RecipeShareException ex)
+        {
+            return BadRequest(new RecipeShareExceptionResponse(ex));
+        }
+
         LuaTable rawTradeskills = (LuaTable)lua["RecipeShareTradeskills"];
         List<TradeSkill> tradeSkills = [];
         LuaTable rawCraftskills = (LuaTable)lua["RecipeShareCraftskills"];
@@ -194,9 +223,6 @@ public class CharacterController(ISessionState sessionState) : Controller
             _ram[characterId].Professions = new() { TradeSkills = tradeSkills, CraftSkills = craftSkills };
         else
         {
-            var profileInfo = ProfileController._bnetRam[session!.AccountId];
-            var charInfo = profileInfo.wow_accounts.SelectMany(wa => wa.characters).FirstOrDefault(c => c.id == characterId);
-            if (charInfo is null) throw new InvalidOperationException("Could not find character");
             CharacterInfo appCharInfo = new(charInfo);
             ProfessionSkills skills = new() { TradeSkills = tradeSkills, CraftSkills = craftSkills };
             _ram.Add(characterId, new(appCharInfo, skills));

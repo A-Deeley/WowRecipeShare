@@ -1,4 +1,4 @@
-import { apiRoot } from "../apiconfig";
+import { apiRoot, RequestException } from "../apiconfig";
 import { GetSessionStorageToken } from "../blizzard/profile";
 
 
@@ -21,15 +21,14 @@ async function getProfessions(
 async function updateProfessions(
   id: string | number,
   file: File
-): Promise<void> {
+): Promise<undefined | RequestException> {
   const token = GetSessionStorageToken();
 
   if (token === null)
     throw new Error("No session token found. Please log in again.");
   const formData = new FormData();
   formData.append("file", file);
-
-  await fetch(
+  const response = await fetch(
     `${apiRoot}/Character/${id}/Profession`,
     {
       method: "post",
@@ -39,6 +38,10 @@ async function updateProfessions(
       body: formData
     }
   );
+
+  const body: RequestException = await response.json()
+  console.log(body)
+  if (body) return body;
 }
 
 async function GetAllCharacters(): Promise<CharacterList[]> {

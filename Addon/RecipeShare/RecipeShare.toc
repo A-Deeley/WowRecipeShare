@@ -1,8 +1,8 @@
 ## Interface: 11505
-## Version: 0.1.6
+## Version: 0.1.7
 ## Title: RecipeShare
 ## Notes: Recipe Share
 ## Author: Kuronai-Dreamscythe
-## SavedVariablesPerCharacter: RecipeShareTradeskills,RecipeShareCraftskills
+## SavedVariablesPerCharacter: RecipeShareTradeskills,RecipeShareCraftskills,AddonInfo
 
 RecipeShare.lua

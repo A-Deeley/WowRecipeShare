@@ -1,9 +1,36 @@
-if not RecipeShareCraftskills then
-    RecipeShareCraftskills = {}
+AddonInfo = {}
+RecipeShareCraftskills = {}
+RecipeShareTradeskills = {}
+
+local function ResetFile()
+    AddonInfo = {
+        version = C_AddOns.GetAddOnMetadata('RecipeShare', 'Version'),
+        name = UnitNameUnmodified("player"),
+        realm = GetRealmName()
+        }
+    RecipeShareCraftskills = { }
+    RecipeShareTradeskills = { }
 end
-if not RecipeShareTradeskills then
-    RecipeShareTradeskills = {}
-end
+
+local specIds = {
+    ["Leatherworking"] = {
+        [10660] = true, --Tribal https://www.wowhead.com/classic/spell=10660/tribal-leatherworking
+        [10658] = true, --Elemental https://www.wowhead.com/classic/spell=10658/elemental-leatherworking
+        [10656] = true, --Dragonscale https://www.wowhead.com/classic/spell=10656/dragonscale-leatherworking
+    },
+    ["Blacksmithing"] = {
+        [9787] = {
+            [17039] = true, --Master Swordsmith https://www.wowhead.com/classic/spell=17039/master-swordsmith
+            [17040] = true, --Master Hammersmith https://www.wowhead.com/classic/spell=17040/master-hammersmith
+            [17041] = true, --Master Axesmith https://www.wowhead.com/classic/spell=17041/master-axesmith
+        },
+        [9788] = true       --Armorsmith https://www.wowhead.com/classic/spell=9788/armorsmith
+    },
+    ["Engineering"] = {
+        [20219] = true, --Gnomish https://www.wowhead.com/classic/spell=20219/gnomish-engineer
+        [20222] = true, --Goblin https://www.wowhead.com/classic/spell=20222/goblin-engineer
+    }
+}
 
 local function expandAllTradeSkills()
     local i = 1
@@ -20,51 +47,77 @@ local function expandAllTradeSkills()
     end
 end
 
-local function handleCraftSkillShow(event)
-    local craftskill = {}
-local craft = 1
-local exists = true
-local professionName = GetCraftSkillLine(1)
-local craftSkillName, current, max = GetCraftDisplaySkillLine()
-while exists do
-   local name, type = GetCraftInfo(craft)
-   local link = GetCraftItemLink(craft)
-   local skillInfo = {
-      name = name,
-      difficulty = type,
-      link = link
-   }
-   local reagentInfo = {}
-   for reagent = 1, GetCraftNumReagents(craft) do
-      local reagentName, _, reagentCount = GetCraftReagentInfo(craft, reagent)
-      local reagentItemLink = GetCraftReagentItemLink(craft, reagent)
-      table.insert(reagentInfo, { name = reagentName, count = reagentCount, link = reagentItemLink })
-   end
-   skillInfo.reagents = reagentInfo
-   if skillInfo.name then
-      table.insert(craftskill, skillInfo)
-   end
-   exists = name ~= nil
-   craft = craft + 1
+local function handlePlayerLogin(event)
+    if not AddonInfo.version or AddonInfo.version ~= C_AddOns.GetAddOnMetadata('RecipeShare', 'Version') then
+        ResetFile()
+    end
 end
-local existingValue = RecipeShareTradeskills[professionName]
-existingValue = { name = craftSkillName, level = { current = current, max = max }, items = craftskill }
-RecipeShareCraftskills[professionName] = existingValue
+
+local function handleCraftSkillShow(event)
+    print("Loading craftskill...")
+    local craftskill = {}
+    local craft = 1
+    local exists = true
+    local professionName = GetCraftSkillLine(1)
+    local craftSkillName, current, max = GetCraftDisplaySkillLine()
+    while exists do
+        local name, type = GetCraftInfo(craft)
+        local link = GetCraftItemLink(craft)
+        local skillInfo = {
+            name = name,
+            difficulty = type,
+            link = link
+        }
+        local reagentInfo = {}
+        for reagent = 1, GetCraftNumReagents(craft) do
+            local reagentName, _, reagentCount = GetCraftReagentInfo(craft, reagent)
+            local reagentItemLink = GetCraftReagentItemLink(craft, reagent)
+            table.insert(reagentInfo, { name = reagentName, count = reagentCount, link = reagentItemLink })
+        end
+        skillInfo.reagents = reagentInfo
+        if skillInfo.name then
+            table.insert(craftskill, skillInfo)
+        end
+        exists = name ~= nil
+        craft = craft + 1
+    end
+    local existingValue = RecipeShareTradeskills[professionName]
+    existingValue = { name = craftSkillName, level = { current = current, max = max }, items = craftskill }
+    RecipeShareCraftskills[professionName] = existingValue
+    print(existingValue.name.." skill recorded successfuly! Reload your UI to save to file. (/reload)")
 end
 
 
 local function handleTradeSkillShow(event)
+    print("Loading tradeskill...")
     local tradeskill = {}
     expandAllTradeSkills()
     local craft = 1
     local exists = true
     local tradeskillName, current, max = GetTradeSkillLine()
+    local subSpecInfo = {}
+    if specIds[tradeskillName] then
+        for k, _ in pairs(specIds[tradeskillName]) do
+            local spellKnown = IsSpellKnown(k)
+            if spellKnown and k == 9787 then -- 9787 is weaponsmith, so we'll check for weapon master specIds
+                for subK, _ in pairs(specIds[tradeskillName][k]) do
+                    if IsSpellKnown(subK) then
+                        local name = GetSpellInfo(k)
+                        subSpecInfo[tradeskillName] = name
+                    end
+                end
+            end
+            if spellKnown then
+                local name = GetSpellInfo(k)
+                subSpecInfo[tradeskillName] = name;
+            end
+        end
+    end
     local key = "n\\a"
     local skillsInHeader = nil
     while exists do
         local name, type = GetTradeSkillInfo(craft)
         if type == "header" then
-            print('name: '..name, ' | type: '..type)
             key = name
             if skillsInHeader ~= nil then
                 tradeskill[key] = skillsInHeader
@@ -94,8 +147,16 @@ local function handleTradeSkillShow(event)
     end
     tradeskill[key] = skillsInHeader
     local existingValue = RecipeShareTradeskills[tradeskillName]
-    existingValue = { name = tradeskillName, level = { current = current, max = max }, items = tradeskill }
+    existingValue = {name = tradeskillName, level = { current = current, max = max }, items = tradeskill, subspec = nil }
+    if subSpecInfo[tradeskillName] then
+        existingValue.subspec = subSpecInfo[tradeskillName];
+    end
     RecipeShareTradeskills[tradeskillName] = existingValue
+    if existingValue.subspec then
+        print(existingValue.name.." ("..existingValue.subspec..") recorded successfuly! Reload your UI to save to file. (/reload)")
+    else
+        print(existingValue.name.." recorded successfuly! Reload your UI to save to file. (/reload)")
+    end
 end
 
 -- Register the event listener frame
@@ -103,7 +164,8 @@ local eventListener = CreateFrame("Frame", "RecipeShareMainFrame", UIParent)
 
 local function eventHandler(self, event, ...)
     if event == "TRADE_SKILL_SHOW" then handleTradeSkillShow(event) end
-    if event == "CRAFT_SKILL_SHOW" then handleCraftSkillShow(event) end
+    if event == "CRAFT_SHOW" then handleCraftSkillShow(event) end
+    if event == "PLAYER_LOGIN" then handlePlayerLogin(event) end
 end
 
 
@@ -136,7 +198,7 @@ end
 -- end
 
 -- Credit goes to Ketho (https://www.wowinterface.com/forums/showpost.php?p=323901&postcount=2)
-function KethoEditBox_Show(text)
+local function KethoEditBox_Show(text)
     if not KethoEditBox then
         local f = CreateFrame("Frame", "KethoEditBox", UIParent, "DialogBoxFrame")
         f:SetPoint("CENTER")
@@ -207,20 +269,7 @@ function KethoEditBox_Show(text)
     KethoEditBox:Show()
 end
 
-function eventListener:TRADE_SKILL_CLOSE(event)
-    tradeSkillWindowVisible = false
-end
-
-function eventListener:CRAFT_SKILL_SHOW(event)
-    craftSkillWindowVisible = true
-end
-
-function eventListener:CRAFT_SKILL_CLOSE(event)
-    craftSkillWindowVisible = false
-end
-
 eventListener:SetScript("OnEvent", eventHandler)
 eventListener:RegisterEvent("TRADE_SKILL_SHOW")
-eventListener:RegisterEvent("TRADE_SKILL_CLOSE")
-eventListener:RegisterEvent("CRAFT_SKILL_SHOW")
-eventListener:RegisterEvent("CRAFT_SKILL_CLOSE")
+eventListener:RegisterEvent("CRAFT_SHOW")
+eventListener:RegisterEvent("PLAYER_LOGIN")

@@ -34,6 +34,8 @@ function RouteComponent() {
   const [proffs, setProffs] = useState<ProfessionSkills | undefined>(
     professions?.Professions,
   )
+
+  const [uploadError, setUploadError] = useState<undefined | string>()
   // const { data, isError, isPending, refetch, error } = useQuery({
   //   queryKey: [realm.slug, name],
   //   queryFn: () => getProfessions(name, realm.slug),
@@ -46,9 +48,16 @@ function RouteComponent() {
   ) => {
     e.preventDefault()
 
-    await updateProfessions(id, e.currentTarget.file.files[0])
-    setProffs((await getProfessions(id))?.Professions)
-    setSelectedTabIndex(0);
+    const response = await updateProfessions(id, e.currentTarget.file.files[0])
+    if (response !== undefined)
+    {
+      console.log("we are not undefiend", response)
+      setUploadError(response.Message)
+    }
+    else{
+      setProffs((await getProfessions(id))?.Professions)
+      setSelectedTabIndex(0);
+    }
   }
 
   return (
@@ -142,6 +151,7 @@ function RouteComponent() {
         {selectedTabIndex == 2 && (
           <>
             <h1>Update professions</h1>
+            {uploadError && <span style={{ color: 'red' }}>{uploadError}</span>}
             <form
               onSubmit={handleUpdateProfessionsSubmit}
               style={{ marginBottom: 10 }}
