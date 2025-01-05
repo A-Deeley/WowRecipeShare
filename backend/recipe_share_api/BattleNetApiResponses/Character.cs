@@ -1,4 +1,6 @@
-﻿namespace recipe_share_api.BattleNetApiResponses;
+﻿using recipe_share_api.EntityFramework;
+
+namespace recipe_share_api.BattleNetApiResponses;
 
 public class Character
 {
@@ -11,4 +13,17 @@ public class Character
     public Faction faction { get; set; }
     public int level { get; set; }
     public Guild? guild { get; set; }
+
+    public BnetCharacter MapToBnetCharacter()
+    {
+        return new()
+        {
+            Name = name,
+            Id = id,
+            Level = level,
+            Race = playable_race.name,
+            Class = playable_class.name,
+            RealmId = realm.id,
+        };
+    }
 }

@@ -1,4 +1,5 @@
 import { apiRoot } from "../apiconfig";
+import { GetSessionStorageToken } from "../blizzard/profile";
 
 async function getProfile(): Promise<string> {
   const response = await fetch(`${apiRoot}/Profile`);
@@ -14,12 +15,34 @@ async function login(code: string):Promise<LoginToken> {
     return response.json();
 }
 
-type LoginToken = {
-    session_id: string,
-    id_token: string,
-    ExpiresOn: Date
+async function update(data: UpdateAccount):Promise<void> {
+  const token = GetSessionStorageToken();
+
+  if (token === null)
+    throw new Error("No session token found. Please log in again.");
+
+  await fetch(`${apiRoot}/Profile`, { method: 'PATCH', body: JSON.stringify(data), headers: { 'Content-type': 'application/json', "X-RecipeShare-SessionId": token.SessionId}});
+  token.PreferredAccountId = data.PreferredAccountId;
+  token.PreferredRealmId = data.PreferredRealmId;
+  sessionStorage.setItem("token", JSON.stringify(token));
 }
 
-export type { LoginToken }
+type UpdateAccount = {
+  Id: number,
+  PreferredRealmId?: number,
+  PreferredAccountId?: number
+}
 
-export { getProfile, login }
+type LoginToken = {
+    SessionId: string,
+    IdToken: string,
+    ExpiresOn: Date,
+    LastSyncedOn: Date,
+    PreferredRealmId?: number,
+    PreferredAccountId?: number
+}
+
+
+export type { LoginToken, UpdateAccount }
+
+export { getProfile, login, update }

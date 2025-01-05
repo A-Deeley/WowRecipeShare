@@ -33,7 +33,7 @@ async function updateProfessions(
     {
       method: "post",
       headers: {
-        "X-RecipeShare-SessionId": token.session_id
+        "X-RecipeShare-SessionId": token.SessionId
       },
       body: formData
     }

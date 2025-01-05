@@ -7,12 +7,16 @@ using recipe_share_api.Sessions;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
-var cString = configuration.GetConnectionString("MySql");
-var serverVersion = ServerVersion.AutoDetect(cString);
-builder.Services.AddDbContext<RecipeShareDbContext>(options => options.UseMySql(cString, serverVersion));
 
 // Add services to the container.
 
+#if DEBUG
+    builder.Services.AddDbContext<RecipeShareDbContext>(options => options.UseInMemoryDatabase("recipeShare"));
+#else
+    var cString = configuration.GetConnectionString("MySql");
+    var serverVersion = ServerVersion.AutoDetect(cString);
+    builder.Services.AddDbContext<RecipeShareDbContext>(options => options.UseMySql(cString, serverVersion));
+#endif
 builder.Services.AddControllersWithViews().AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = null);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

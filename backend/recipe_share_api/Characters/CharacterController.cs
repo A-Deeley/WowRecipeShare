@@ -72,7 +72,7 @@ public class CharacterController(ISessionState sessionState) : Controller
         if (!isOwnedByRequester)
             return Unauthorized();
 
-        var profileInfo = ProfileController._bnetRam[session!.AccountId];
+        var profileInfo = ProfileController._bnetRam[(int)session!.AccountId];
         var charInfo = profileInfo.wow_accounts.SelectMany(wa => wa.characters).FirstOrDefault(c => c.id == characterId);
         if (charInfo is null) throw new InvalidOperationException("Could not find character");
 

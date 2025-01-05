@@ -3,6 +3,11 @@
 public class BnetUser : Entity
 {
     public DateTime LastLogon { get; set; }
-    public int AccountUniqueId { get; set; }
+    public DateTime LastBnetSync { get; set; }
     public string BattleTag { get; set; } = null!;
+    public virtual ICollection<BnetUserAccount> Accounts { get; set; } = [];
+    public int? PreferredAccountId { get; set; }
+    public virtual BnetUserAccount? PreferredAccount { get; set; }
+    public int? PreferredRealmId { get; set; }
+    public virtual BnetRealm? PreferredRealm { get; set; }
 }

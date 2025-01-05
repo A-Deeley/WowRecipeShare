@@ -19,7 +19,7 @@ async function GetProfileAccountSummary(): Promise<AccountProfileSummary> {
 
   if (token === null) throw new Error('No session token found. Please log in again.');
   
-  const response = await fetch(`${apiRoot}/BnetApiProxy/profile/user/wow`, { headers: { 'X-RecipeShare-SessionId': token.session_id}});
+  const response = await fetch(`${apiRoot}/BnetApiProxy/profile/user/wow`, { headers: { 'X-RecipeShare-SessionId': token.SessionId}});
 
   if (!response.ok) throw new Error(response.statusText);
 
@@ -31,7 +31,7 @@ async function GetProtectedCharacter(name: string, realm: string): Promise<Profi
 
   if (token === null) throw new Error('No session token found. Please log in again.');
 
-  const response = await fetch(`${apiRoot}/BnetApiProxy/profile/user/wow/protected-character/${realm}-${name}`, { headers: { 'X-RecipeShare-SessionId': token.session_id}});
+  const response = await fetch(`${apiRoot}/BnetApiProxy/profile/user/wow/protected-character/${realm}-${name}`, { headers: { 'X-RecipeShare-SessionId': token.SessionId}});
 
   if (!response.ok) throw new Error(response.statusText);
 

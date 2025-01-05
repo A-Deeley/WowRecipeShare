@@ -1,4 +1,6 @@
-﻿namespace recipe_share_api.BattleNetApiResponses;
+﻿using recipe_share_api.EntityFramework;
+
+namespace recipe_share_api.BattleNetApiResponses;
 
 public class ProfileUserWowResponse
 {
