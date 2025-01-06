@@ -1,7 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Primitives;
 using NLua;
 using recipe_share_api.Characters;
+using recipe_share_api.EntityFramework;
+using recipe_share_api.EntityFramework.Services;
 using recipe_share_api.Exceptions;
 using recipe_share_api.Exceptions.AddonExceptions;
 using recipe_share_api.Login;
@@ -12,7 +15,7 @@ namespace recipe_share_api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class CharacterController(ISessionState sessionState) : Controller
+public class CharacterController(ISessionState sessionState, RecipeShareDbContext db, BnetItemService itemService) : Controller
 {
     // TEMPORARY "DATABASE"
     internal static Dictionary<int, ApiCharRef> _ram = new()
@@ -43,27 +46,56 @@ public class CharacterController(ISessionState sessionState) : Controller
     };
 
     [HttpGet]
-    public ActionResult Get()
+    public async Task<ActionResult> Get()
     {
-        return Ok(_ram.Where(kvPair => kvPair.Value.Professions is not null).Select(kvPair => new { realm = kvPair.Value.CharInfo.RealmSlug, character = kvPair.Value.CharInfo.Name, id = kvPair.Key }));
+        var characters = await db
+            .Characters
+            .Include(e => e.BnetRealm)
+            .Where(e => e.BnetProfessions.Count > 0)
+            .Select(e => new CharacterListDto(e))
+            .ToListAsync();
+
+        return Ok(characters);
     }
 
     [HttpGet("{characterId}")]
-    public ActionResult<IEnumerable<TradeSkill>> GetCharacter(int characterId)
+    public async Task<ActionResult> GetCharacter(int characterId)
     {
-        return Ok(_ram[characterId]);
+        var character = await db
+            .Characters
+            .Include(e => e.BnetRealm)
+            .Include(e => e.BnetProfessions)
+                .ThenInclude(e => e.BnetProfessionItems)
+                    .ThenInclude(e => e.BnetProfessionItemReagents)
+            .FirstOrDefaultAsync(e => e.Id == characterId);
+        if (character is null) return NotFound();
+        if (character.BnetProfessions is null || character.BnetProfessions.Count == 0) return NotFound();
+
+        var dto = new GetProfessionDataResponse(character);
+
+        return Ok(dto);
     }
 
     [HttpGet("{characterId}/Profession")]
-    public ActionResult GetProfessionData(int characterId)
+    public async Task<ActionResult> GetProfessionData(int characterId)
     {
-        if (!_ram.TryGetValue(characterId, out ApiCharRef? value)) return NotFound($"No profession data for character id {characterId}");
+        var character = await db
+            .Characters
+            .Include(e => e.BnetRealm)
+            .Include(e => e.BnetProfessions)
+                .ThenInclude(e => e.BnetProfessionItems)
+                    .ThenInclude(e => e.BnetProfessionItemReagents)
+            .FirstOrDefaultAsync(e => e.Id == characterId);
+        if (character is null) return NotFound();
+        if (character.BnetProfessions is null || character.BnetProfessions.Count == 0) return NotFound();
 
-        return Ok(JsonSerializer.Serialize(value));
+        var dto = new GetProfessionDataResponse(character);
+        
+        return Ok(dto);
     }
 
     [HttpPost("{characterId}/Profession")]
-    public ActionResult UploadProfessionData(int characterId, IFormFile file)
+    public async Task<ActionResult> UploadProfessionData(int characterId, IFormFile file)
     {
         if (!sessionState.TryGetSession(Request, out var session))
             return Unauthorized();
@@ -72,10 +104,16 @@ public class CharacterController(ISessionState sessionState) : Controller
         if (!isOwnedByRequester)
             return Unauthorized();
 
-        var profileInfo = ProfileController._bnetRam[(int)session!.AccountId];
-        var charInfo = profileInfo.wow_accounts.SelectMany(wa => wa.characters).FirstOrDefault(c => c.id == characterId);
-        if (charInfo is null) throw new InvalidOperationException("Could not find character");
+        var user = await db
+            .Users
+            .Include(e => e.BnetUserAccounts)
+                .ThenInclude(e => e.BnetCharacters)
+                    .ThenInclude(e => e.BnetRealm)
+            .FirstOrDefaultAsync(e => e.Id == session!.AccountId) ?? throw new InvalidOperationException("Could not find user");
 
+        var charInfo = user.BnetUserAccounts.SelectMany(a => a.BnetCharacters).FirstOrDefault(c => c.Id == characterId);
+        if (charInfo is null) return NotFound();
+        
         string fileContents = "";
         using (var reader = new StreamReader(file.OpenReadStream()))
         {
@@ -93,13 +131,15 @@ public class CharacterController(ISessionState sessionState) : Controller
         try
         {
             // Check if the user is uploading a valid file from the correct addon version.
-            // Somehow get version from DB
-            string supportedVersion = "0.1.8";
+            string supportedVersion = (await db
+                .ApplicationSettings
+                .FirstAsync(e => e.Key == ApplicationSetting.AddonVersion)).Value;
+
             if (addonVersionInFile != supportedVersion)
                 throw new InvalidVersionException(addonVersionInFile, supportedVersion);
 
             // Check if the character in the file is the correct character
-            if (!charNameInFile.Equals(charInfo.name, StringComparison.OrdinalIgnoreCase) || !realmNameInFile.Equals(charInfo.realm.name, StringComparison.OrdinalIgnoreCase))
+            if (!charNameInFile.Equals(charInfo.Name, StringComparison.OrdinalIgnoreCase) || !realmNameInFile.Equals(charInfo.BnetRealm.Name, StringComparison.OrdinalIgnoreCase))
                 throw new InvalidCharacterException();
         }
         catch(RecipeShareException ex)
@@ -141,7 +181,7 @@ public class CharacterController(ISessionState sessionState) : Controller
                     foreach (LuaTable headerSkillItem in ((LuaTable)tradeskillInfo["items"]).Values)
                     {
                         Enum.TryParse((string)headerSkillItem["difficulty"], true, out Difficulty difficulty);
-                        ItemCooldown? cd = null;
+                        ItemCooldownDto? cd = null;
                         LuaTable cooldownInfo = (LuaTable)headerSkillItem["cooldown"];
                         if (cooldownInfo is not null)
                         {
@@ -233,13 +273,52 @@ public class CharacterController(ISessionState sessionState) : Controller
             return BadRequest($"Malformed file. {e.Message}");
         }
 
-        if (_ram.ContainsKey(characterId))
-            _ram[characterId].Professions = new() { TradeSkills = tradeSkills, CraftSkills = craftSkills };
-        else
+        var character = await db
+            .Characters
+            .Include(e => e.BnetProfessions)
+                .ThenInclude(e => e.BnetProfessionItems)
+                    .ThenInclude(e => e.BnetProfessionItemReagents)
+            .FirstAsync(e => e.Id == characterId);
+
+        db.RemoveRange(character.BnetProfessions);
+
+        foreach (var tradeSkill in tradeSkills)
         {
-            CharacterInfo appCharInfo = new(charInfo);
-            ProfessionSkills skills = new() { TradeSkills = tradeSkills, CraftSkills = craftSkills };
-            _ram.Add(characterId, new(appCharInfo, skills));
+            BnetProfession newProf = new()
+            {
+                BnetCharacterId = characterId,
+                CurrentExp = tradeSkill.CurrentExp,
+                MaxExp = tradeSkill.MaxExp,
+                Name = tradeSkill.Name,
+                SubSpecialisation = tradeSkill.SubSpecialisation,
+                BnetProfessionItems = []
+            };
+            foreach (var tradeSkillItem in tradeSkill.Items)
+            {
+                var bnetProfItem = await itemService.InsertProfessionItem(tradeSkillItem);
+                newProf.BnetProfessionItems.Add(bnetProfItem);
+            }
+            db.Add(newProf);
+            await db.SaveChangesAsync();
+        }
+
+        foreach (var craftSkill in craftSkills)
+        {
+            BnetProfession newProf = new()
+            {
+                BnetCharacterId = characterId,
+                CurrentExp = craftSkill.CurrentExp,
+                MaxExp = craftSkill.MaxExp,
+                Name = craftSkill.Name,
+                BnetProfessionItems = []
+            };
+            foreach (var craftSkillItem in craftSkill.Items)
+            {
+                var bnetProfItem = await itemService.InsertProfessionItem(craftSkillItem);
+                newProf.BnetProfessionItems.Add(bnetProfItem);
+            }
+            db.Add(newProf);
+            await db.SaveChangesAsync();
         }
 
         return Ok();

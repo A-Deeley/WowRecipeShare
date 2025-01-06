@@ -1,7 +1,6 @@
 import { createFileRoute, Link, useLoaderData } from '@tanstack/react-router'
 import { GetCharacter } from '../api/local/character'
 import { ShowTradeSkill } from '../TradeSkillComponents'
-import { ShowCraftSkill } from '../CraftSkillComponents'
 import { useState } from 'react'
 
 export const Route = createFileRoute('/character/$id')({
@@ -66,15 +65,10 @@ function RouteComponent() {
                 display: 'flex',
               }}
             >
-              {Professions?.TradeSkills.filter(
+              {Professions.filter(
                 (tc) => tc.Name !== 'Cooking' && tc.Name !== 'First Aid',
               ).map((p, i) => (
                 <ShowTradeSkill key={i} tradeskill={p} />
-              ))}
-              {Professions?.CraftSkills.filter(
-                (tc) => tc.Name !== 'Cooking' && tc.Name !== 'First Aid',
-              ).map((p, i) => (
-                <ShowCraftSkill key={i} tradeskill={p} />
               ))}
             </div>
           </>
@@ -89,7 +83,7 @@ function RouteComponent() {
                 display: 'flex',
               }}
             >
-              {Professions?.TradeSkills.filter(
+              {Professions.filter(
                 (tc) => tc.Name === 'Cooking' || tc.Name === 'First Aid',
               ).map((p, i) => (
                 <ShowTradeSkill key={i} tradeskill={p} />

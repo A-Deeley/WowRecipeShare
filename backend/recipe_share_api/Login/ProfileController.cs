@@ -37,8 +37,8 @@ public class ProfileController(ISessionState sessionState, IWebHostEnvironment w
             return Unauthorized();
 
         var user = await db
-            .BnetUsers
-            .Include(e => e.Accounts)
+            .Users
+            .Include(e => e.BnetUserAccounts)
                 .ThenInclude(e => e.BnetCharacters)
             .FirstOrDefaultAsync(e => e.Id == accountId);
 
@@ -47,7 +47,7 @@ public class ProfileController(ISessionState sessionState, IWebHostEnvironment w
 
         var profileInfo = await bnetProfile.GetWowUser(session!.AccessToken);
         if (profileInfo is null) throw new InvalidOperationException("Error syncing with BattleNet during login.");
-        user.Accounts = profileInfo.wow_accounts.Select(w => w.MapToBnetUser()).ToList();
+        user.BnetUserAccounts = profileInfo.wow_accounts.Select(w => w.MapToBnetUser()).ToList();
         user.LastBnetSync = DateTime.Now;
         await db.SaveChangesAsync();
         return Ok();
@@ -64,7 +64,7 @@ public class ProfileController(ISessionState sessionState, IWebHostEnvironment w
             return Unauthorized();
 
         var user = await db
-            .BnetUsers
+            .Users
             .FirstOrDefaultAsync(e => e.Id == request.Id);
 
         if (user is null)
@@ -101,8 +101,8 @@ public class ProfileController(ISessionState sessionState, IWebHostEnvironment w
             ProfileUserWowResponse? profileInfo = null;
             var userInfo = await bnetProfile.GetUserInfo(tokenResponse.access_token) ?? throw new InvalidOperationException("could not fetch user info");
             var user = await db
-                .BnetUsers
-                .Include(e => e.Accounts)
+                .Users
+                .Include(e => e.BnetUserAccounts)
                     .ThenInclude(e => e.BnetCharacters)
                 .FirstOrDefaultAsync(e => e.Id == userInfo.id);
             if (user is null)
@@ -125,7 +125,7 @@ public class ProfileController(ISessionState sessionState, IWebHostEnvironment w
             {
                 profileInfo = await bnetProfile.GetWowUser(tokenResponse.access_token);
                 if (profileInfo is null) throw new InvalidOperationException("Error syncing with BattleNet during login.");
-                user.Accounts = profileInfo.wow_accounts.Select(w => w.MapToBnetUser()).ToList();
+                user.BnetUserAccounts = profileInfo.wow_accounts.Select(w => w.MapToBnetUser()).ToList();
                 user.LastBnetSync = DateTime.Now;
             }
             await db.SaveChangesAsync();

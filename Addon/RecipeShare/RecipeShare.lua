@@ -118,10 +118,11 @@ local function handleTradeSkillShow(event)
     while exists do
         local name, type = GetTradeSkillInfo(craft)
         if type == "header" then
-            key = name
+            -- If we find a new header line, save the current data and reset.
             if skillsInHeader ~= nil then
                 tradeskill[key] = skillsInHeader
             end
+            key = name
             skillsInHeader = { items = {}, title = key }
         elseif type ~= "header" then
             if not skillsInHeader then skillsInHeader = { items = {}, title = key } end

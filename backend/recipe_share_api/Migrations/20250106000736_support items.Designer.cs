@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using recipe_share_api.EntityFramework;
 
@@ -11,9 +12,11 @@ using recipe_share_api.EntityFramework;
 namespace recipe_share_api.Migrations
 {
     [DbContext(typeof(RecipeShareDbContext))]
-    partial class RecipeShareDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250106000736_support items")]
+    partial class supportitems
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,27 +24,6 @@ namespace recipe_share_api.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
-
-            modelBuilder.Entity("recipe_share_api.EntityFramework.ApplicationSetting", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Key")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Value")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ApplicationSettings");
-                });
 
             modelBuilder.Entity("recipe_share_api.EntityFramework.BnetCharacter", b =>
                 {
@@ -78,7 +60,7 @@ namespace recipe_share_api.Migrations
 
                     b.HasIndex("BnetUserAccountId");
 
-                    b.ToTable("Characters");
+                    b.ToTable("BnetCharacter");
                 });
 
             modelBuilder.Entity("recipe_share_api.EntityFramework.BnetItem", b =>
@@ -120,107 +102,6 @@ namespace recipe_share_api.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Items");
-                });
-
-            modelBuilder.Entity("recipe_share_api.EntityFramework.BnetProfession", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("BnetCharacterId")
-                        .HasColumnType("int");
-
-                    b.Property<long>("CurrentExp")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("MaxExp")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("SubSpecialisation")
-                        .HasColumnType("longtext");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BnetCharacterId");
-
-                    b.ToTable("Professions");
-                });
-
-            modelBuilder.Entity("recipe_share_api.EntityFramework.BnetProfessionItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("BnetItemId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("BnetProfessionId")
-                        .HasColumnType("int");
-
-                    b.Property<long?>("Current")
-                        .HasColumnType("bigint");
-
-                    b.Property<double?>("Delta")
-                        .HasColumnType("double");
-
-                    b.Property<string>("Difficulty")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("HeaderName")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BnetItemId");
-
-                    b.HasIndex("BnetProfessionId");
-
-                    b.ToTable("ProfessionItems");
-                });
-
-            modelBuilder.Entity("recipe_share_api.EntityFramework.BnetProfessionItemReagent", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("BnetItemId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("BnetProfessionItemId")
-                        .HasColumnType("int");
-
-                    b.Property<long>("Count")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BnetItemId");
-
-                    b.HasIndex("BnetProfessionItemId");
-
-                    b.ToTable("ProfessionItemReagents");
                 });
 
             modelBuilder.Entity("recipe_share_api.EntityFramework.BnetRealm", b =>
@@ -315,51 +196,6 @@ namespace recipe_share_api.Migrations
                     b.Navigation("BnetUserAccount");
                 });
 
-            modelBuilder.Entity("recipe_share_api.EntityFramework.BnetProfession", b =>
-                {
-                    b.HasOne("recipe_share_api.EntityFramework.BnetCharacter", "BnetCharacter")
-                        .WithMany("BnetProfessions")
-                        .HasForeignKey("BnetCharacterId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("BnetCharacter");
-                });
-
-            modelBuilder.Entity("recipe_share_api.EntityFramework.BnetProfessionItem", b =>
-                {
-                    b.HasOne("recipe_share_api.EntityFramework.BnetItem", "BnetItem")
-                        .WithMany()
-                        .HasForeignKey("BnetItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("recipe_share_api.EntityFramework.BnetProfession", null)
-                        .WithMany("BnetProfessionItems")
-                        .HasForeignKey("BnetProfessionId");
-
-                    b.Navigation("BnetItem");
-                });
-
-            modelBuilder.Entity("recipe_share_api.EntityFramework.BnetProfessionItemReagent", b =>
-                {
-                    b.HasOne("recipe_share_api.EntityFramework.BnetItem", "BnetItem")
-                        .WithMany()
-                        .HasForeignKey("BnetItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("recipe_share_api.EntityFramework.BnetProfessionItem", "BnetProfessionItem")
-                        .WithMany("BnetProfessionItemReagents")
-                        .HasForeignKey("BnetProfessionItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("BnetItem");
-
-                    b.Navigation("BnetProfessionItem");
-                });
-
             modelBuilder.Entity("recipe_share_api.EntityFramework.BnetUser", b =>
                 {
                     b.HasOne("recipe_share_api.EntityFramework.BnetRealm", null)
@@ -376,21 +212,6 @@ namespace recipe_share_api.Migrations
                         .IsRequired();
 
                     b.Navigation("BnetUser");
-                });
-
-            modelBuilder.Entity("recipe_share_api.EntityFramework.BnetCharacter", b =>
-                {
-                    b.Navigation("BnetProfessions");
-                });
-
-            modelBuilder.Entity("recipe_share_api.EntityFramework.BnetProfession", b =>
-                {
-                    b.Navigation("BnetProfessionItems");
-                });
-
-            modelBuilder.Entity("recipe_share_api.EntityFramework.BnetProfessionItem", b =>
-                {
-                    b.Navigation("BnetProfessionItemReagents");
                 });
 
             modelBuilder.Entity("recipe_share_api.EntityFramework.BnetRealm", b =>

@@ -8,7 +8,7 @@ export function CharacterList() {
 
     return (
         <div style={{ display: 'flex', gap: 10, flexDirection: 'column'}}>
-              {allCharactersQuery.data?.map(c => <Link key={`${c.realm}-${c.character}`} to={`/character/$id`} params={{ id: `${c.id}` }}>{c.character}-{c.realm}</Link>)}
+              {allCharactersQuery.data?.map(c => <Link key={`${c.Realm}-${c.Character}`} to={`/character/$id`} params={{ id: `${c.Id}` }}>{c.Character}-{c.Realm}</Link>)}
             </div>
     )
 }

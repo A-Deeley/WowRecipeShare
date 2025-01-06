@@ -6,8 +6,9 @@ public class BnetCharacter : Entity
     public int Level { get; set; }
     public string Class { get; set; } = null!;
     public string Race { get; set; } = null!;
-    public int RealmId { get; set; }
-    public int AccountId { get; set; }
-    public virtual BnetUserAccount Account { get; set; } = null!;
-    public virtual BnetRealm Realm { get; set; } = null!;
+    public int BnetRealmId { get; set; }
+    public int BnetUserAccountId { get; set; }
+    public virtual ICollection<BnetProfession> BnetProfessions { get; set; } = null!;
+    public virtual BnetUserAccount BnetUserAccount { get; set; } = null!;
+    public virtual BnetRealm BnetRealm { get; set; } = null!;
 }

@@ -11,17 +11,18 @@ public class RecipeShareDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<BnetUser>()
-            .HasMany(e => e.Accounts)
-            .WithOne(e => e.User)
-            .HasForeignKey(e => e.UserId);
+            .HasMany(e => e.BnetUserAccounts)
+            .WithOne(e => e.BnetUser)
+            .HasForeignKey(e => e.BnetUserId);
 
         //modelBuilder.Entity<BnetUser>()
         //    .HasOne(e => e.PreferredAccount)
-        //    .WithOne(e => e.User);
+        //    .WithOne(e => e.BnetUser)
+        //    .HasForeignKey<BnetUser>(e => e.PreferredAccountId);
 
         //modelBuilder.Entity<BnetUser>()
         //    .HasOne(e => e.PreferredRealm)
-        //    .WithMany(e => e.Users)
+        //    .WithMany(e => e.BnetUsers)
         //    .HasForeignKey(e => e.PreferredRealmId);
 
         //modelBuilder.Entity<BnetRealm>()
@@ -45,5 +46,12 @@ public class RecipeShareDbContext : DbContext
         //    .HasForeignKey(e => e.UserId);
     }
 
-    public DbSet<BnetUser> BnetUsers { get; set; }
+    public DbSet<BnetUser> Users { get; set; }
+    public DbSet<BnetRealm> Realms { get; set; }
+    public DbSet<BnetItem> Items { get; set; }
+    public DbSet<BnetCharacter> Characters { get; set; }
+    public DbSet<BnetProfession> Professions { get; set; }
+    public DbSet<BnetProfessionItem> ProfessionItems { get; set; }
+    public DbSet<BnetProfessionItemReagent> ProfessionItemReagents { get; set; }
+    public DbSet<ApplicationSetting> ApplicationSettings { get; set; }
 }

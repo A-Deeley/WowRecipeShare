@@ -10,6 +10,6 @@ public class FilesController : Controller
     public ActionResult GetAddon()
     {
         var zipFile = System.IO.File.ReadAllBytes("Files/RecipeShare.zip");
-        return File(zipFile, "application/zip", "RecipeShare_0.1.8.zip");
+        return File(zipFile, "application/zip", "RecipeShare_0.1.9.zip");
     }
 }

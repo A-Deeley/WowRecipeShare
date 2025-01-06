@@ -8,7 +8,7 @@ public class SiteSession(TokenResponseContent tokenResponse, BnetUser profileInf
 {
     public int? AccountId { get; set; } = profileInfo.Id;
     public string BattleTag { get; set; } = ExtractBattleTag(tokenResponse.id_token);
-    public List<int?> OwnedCharacterIds { get; set; } = profileInfo.Accounts.SelectMany(wa => wa.BnetCharacters.Select(c => c.Id)).ToList();
+    public List<int?> OwnedCharacterIds { get; set; } = profileInfo.BnetUserAccounts.SelectMany(wa => wa.BnetCharacters.Select(c => c.Id)).ToList();
     public string AccessToken { get; set; } = tokenResponse.access_token;
     public DateTime ExpiresOn { get; set; } = DateTime.Now.AddSeconds(tokenResponse.expires_in);
     public string IdToken { get; set; } = tokenResponse.id_token;

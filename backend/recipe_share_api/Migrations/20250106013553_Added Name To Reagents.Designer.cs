@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using recipe_share_api.EntityFramework;
 
@@ -11,9 +12,11 @@ using recipe_share_api.EntityFramework;
 namespace recipe_share_api.Migrations
 {
     [DbContext(typeof(RecipeShareDbContext))]
-    partial class RecipeShareDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250106013553_Added Name To Reagents")]
+    partial class AddedNameToReagents
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

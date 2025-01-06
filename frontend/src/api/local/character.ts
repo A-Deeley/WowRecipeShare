@@ -5,7 +5,7 @@ import { GetSessionStorageToken } from "../blizzard/profile";
 
 async function getProfessions(
     id: string | number
-): Promise<ApiCharRef | null> {
+): Promise<Professions | null> {
     const token = GetSessionStorageToken();
 
     if (token === null)
@@ -60,7 +60,7 @@ async function GetAllCharacters(): Promise<CharacterList[]> {
   return response.json();
 }
 
-async function GetCharacter(id: string | number): Promise<ApiCharRef> {
+async function GetCharacter(id: string | number): Promise<Professions> {
   // const token = GetSessionStorageToken();
 
   // if (token === null)
@@ -72,9 +72,9 @@ async function GetCharacter(id: string | number): Promise<ApiCharRef> {
 }
 
 export interface CharacterList {
-  character: string,
-  realm: string,
-  id: number
+  Character: string,
+  Realm: string,
+  Id: number
 }
 
 export interface CharacterInfo {
@@ -94,6 +94,11 @@ export interface ProfessionSkills {
   CraftSkills:  Craftskill[]
 }
 
+export interface Professions {
+  CharInfo:   CharacterInfo
+  Professions: Tradeskill[]
+}
+
 export interface Tradeskill {
     Name:       string;
     CurrentExp: number;
@@ -103,10 +108,11 @@ export interface Tradeskill {
 }
 
 export interface Craftskill {
-  Name:       string;
-  CurrentExp: number;
-  MaxExp:     number;
-  Items:      CraftItem[];
+  Name:               string;
+  CurrentExp:         number;
+  MaxExp:             number;
+  SubSpecialisation?: string;
+  Items:              Item[];
 }
 
 export interface CraftItem {

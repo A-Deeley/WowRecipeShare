@@ -1,4 +1,5 @@
 ﻿using recipe_share_api.BattleNetApiResponses;
+using recipe_share_api.EntityFramework;
 
 namespace recipe_share_api.Characters;
 
@@ -18,6 +19,13 @@ public class CharacterInfo
         RealmSlug = character.realm.slug;
         Name = character.name;
         GuildName = character.guild?.name;
+    }
+
+    public CharacterInfo(BnetCharacter character)
+    {
+        CharacterId = (int)character.Id!;
+        RealmSlug = character.BnetRealm.Slug;
+        Name = character.Name;
     }
 
     public string? GuildName { get; set; }

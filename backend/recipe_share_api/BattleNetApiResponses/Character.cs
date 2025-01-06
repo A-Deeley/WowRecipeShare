@@ -23,7 +23,7 @@ public class Character
             Level = level,
             Race = playable_race.name,
             Class = playable_class.name,
-            RealmId = realm.id,
+            BnetRealmId = realm.id,
         };
     }
 }

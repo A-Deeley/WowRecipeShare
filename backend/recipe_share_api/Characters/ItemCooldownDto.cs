@@ -2,7 +2,7 @@
 
 namespace recipe_share_api.Characters;
 
-public class ItemCooldown
+public class ItemCooldownDto
 {
     [JsonIgnore]
     public Int64 Current { get; set; }

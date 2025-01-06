@@ -10,29 +10,28 @@ import { GetProtectedCharacter } from '../api/blizzard/profile'
 import { FormEvent, useState } from 'react'
 import {
   getProfessions,
-  ProfessionSkills,
+  Professions,
   updateProfessions,
 } from '../api/local/character'
 import { ShowTradeSkill } from '../TradeSkillComponents'
-import { ShowCraftSkill } from '../CraftSkillComponents'
 export const Route = createFileRoute('/protected_character/$realm/$name')({
   loader: async ({ params: { realm, name } }) => {
     const response = await GetProtectedCharacter(name, realm)
     console.log(response)
-    const professions = await getProfessions(response.id)
+    const profession = await getProfessions(response.id)
 
-    return { ...response, professions }
+    return { ...response, profession }
   },
   component: RouteComponent,
 })
 
 function RouteComponent() {
-  const { name, level, character_class, professions, id } = useLoaderData({
+  const { name, level, character_class, profession, id } = useLoaderData({
     from: '/protected_character/$realm/$name',
   })
 
-  const [proffs, setProffs] = useState<ProfessionSkills | undefined>(
-    professions?.Professions,
+  const [proffs, setProffs] = useState<Professions | undefined>(
+    profession ?? undefined,
   )
 
   const [uploadError, setUploadError] = useState<undefined | string>()
@@ -55,7 +54,7 @@ function RouteComponent() {
       setUploadError(response.Message)
     }
     else{
-      setProffs((await getProfessions(id))?.Professions)
+      setProffs((await getProfessions(id)) ?? undefined)
       setSelectedTabIndex(0);
     }
   }
@@ -121,13 +120,9 @@ function RouteComponent() {
               }}
             >
               {proffs &&
-                proffs.TradeSkills.filter(
+                proffs.Professions.filter(
                   (tc) => tc.Name !== 'Cooking' && tc.Name !== 'First Aid',
                 ).map((p, i) => <ShowTradeSkill key={i} tradeskill={p} />)}
-              {proffs &&
-                proffs.CraftSkills.filter(
-                  (tc) => tc.Name !== 'Cooking' && tc.Name !== 'First Aid',
-                ).map((p, i) => <ShowCraftSkill key={i} tradeskill={p} />)}
             </div>
           </>
         )}
@@ -142,7 +137,7 @@ function RouteComponent() {
               }}
             >
               {proffs &&
-                proffs.TradeSkills.filter(
+                proffs.Professions.filter(
                   (tc) => tc.Name === 'Cooking' || tc.Name === 'First Aid',
                 ).map((p, i) => <ShowTradeSkill key={i} tradeskill={p} />)}
             </div>

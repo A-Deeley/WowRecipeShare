@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using recipe_share_api.EntityFramework;
 
@@ -11,9 +12,11 @@ using recipe_share_api.EntityFramework;
 namespace recipe_share_api.Migrations
 {
     [DbContext(typeof(RecipeShareDbContext))]
-    partial class RecipeShareDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250106001809_appsettings")]
+    partial class appsettings
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -78,7 +81,7 @@ namespace recipe_share_api.Migrations
 
                     b.HasIndex("BnetUserAccountId");
 
-                    b.ToTable("Characters");
+                    b.ToTable("BnetCharacter");
                 });
 
             modelBuilder.Entity("recipe_share_api.EntityFramework.BnetItem", b =>
@@ -210,10 +213,6 @@ namespace recipe_share_api.Migrations
                     b.Property<long>("Count")
                         .HasColumnType("bigint");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
                     b.HasKey("Id");
 
                     b.HasIndex("BnetItemId");
@@ -318,7 +317,7 @@ namespace recipe_share_api.Migrations
             modelBuilder.Entity("recipe_share_api.EntityFramework.BnetProfession", b =>
                 {
                     b.HasOne("recipe_share_api.EntityFramework.BnetCharacter", "BnetCharacter")
-                        .WithMany("BnetProfessions")
+                        .WithMany()
                         .HasForeignKey("BnetCharacterId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -376,11 +375,6 @@ namespace recipe_share_api.Migrations
                         .IsRequired();
 
                     b.Navigation("BnetUser");
-                });
-
-            modelBuilder.Entity("recipe_share_api.EntityFramework.BnetCharacter", b =>
-                {
-                    b.Navigation("BnetProfessions");
                 });
 
             modelBuilder.Entity("recipe_share_api.EntityFramework.BnetProfession", b =>
